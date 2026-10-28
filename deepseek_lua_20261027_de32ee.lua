@@ -1,7 +1,6 @@
 -- ============================================================
 --  YBA Multi-Tool v10 — completo
---  Fix v10: teleportTo con bypass anti-cheat YBA (attesa LastACPos
---           + zero velocità). Testato e funzionante.
+--  Fix v10: teleportTo
 -- ============================================================
 
 local Players = game:GetService("Players")
@@ -158,7 +157,7 @@ getgenv().YBA_RunId = RunId
 local function isActive() return getgenv().YBA_RunId == RunId end
 
 -- ============================================================
---  TELEPORT (bypass anti-cheat YBA)
+--  TELEPORT
 --  1. Aspetta che LastACPos sparisca (max 1s)
 --  2. CFrame diretto
 --  3. Azzera velocità lineari e angolari
@@ -1748,4 +1747,4 @@ getgenv().YBA_Debug = function()
     print("=== FINE ===")
 end
 
-print("[YBA Multi-Tool v10] Caricato. TP bypass attivo.")
+print("[YBA Multi-Tool v10] Caricato. TP attivo.")
