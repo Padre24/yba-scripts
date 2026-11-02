@@ -1,27 +1,19 @@
 -- ============================================================
---  YBA Multi-Tool — CoolUI + bypass anti-tp
---  • Bypass: Reset + Kick + Returner + Client anti-cheat
---  • Info: sezione default con dettagli
---  • Farm: 3 bottoni (Stand / Item / Requiem)
---  • Teleport: ShiftPlox, SunoTheArrowsmith, FangTheNegotiator
---  • RightCtrl: collassa/espandi (quadratino draggabile)
+--  YBA Multi-Tool — CoolUI (grafica identica all'originale)
+--  + bypass anti-tp + tab Info/Farm/Teleport + mini quadratino
 -- ============================================================
 
-local Players           = game:GetService("Players")
-local UserInputService  = game:GetService("UserInputService")
-local TweenService      = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
-local player    = Players.LocalPlayer
+local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- ============================================================
---  PARTE 1: BYPASS ANTI-TP
+--  BYPASS ANTI-TP
 -- ============================================================
-local bypassInfo = {
-    nameKey      = nil,
-    namecallOk   = false,
-    clientHooked = false,
-}
+local bypassInfo = { nameKey = nil, namecallOk = false, clientHooked = false }
 
 local function _searchTable(t, target)
     for _, v in pairs(t) do
@@ -30,7 +22,6 @@ local function _searchTable(t, target)
     return false
 end
 
--- 1) Chiave Returner da getgc
 do
     local ok, gc = pcall(getgc, true)
     if ok and type(gc) == "table" then
@@ -38,15 +29,13 @@ do
             if type(gc[i]) == "table" then
                 local a = rawget(gc[i], "A")
                 if a and type(a) == "table" and #a > 2 then
-                    bypassInfo.nameKey = a[2]
-                    break
+                    bypassInfo.nameKey = a[2]; break
                 end
             end
         end
     end
 end
 
--- 2) Hook __namecall: Returner + Reset + Kick
 do
     local ok = pcall(function()
         local oldNC
@@ -57,12 +46,8 @@ do
                 if m == "InvokeServer" and tostring(self) == "Returner" and args[1] == "idklolbrah2de" then
                     return bypassInfo.nameKey or " ___XP DE KEY"
                 end
-                if (m == "InvokeServer" or m == "FireServer") and args[1] == "Reset" then
-                    return
-                end
-                if m == "Kick" then
-                    return
-                end
+                if (m == "InvokeServer" or m == "FireServer") and args[1] == "Reset" then return end
+                if m == "Kick" then return end
             end
             return oldNC(self, ...)
         end))
@@ -70,7 +55,6 @@ do
     bypassInfo.namecallOk = ok
 end
 
--- 3) Sospendi funzione Client anti-cheat
 do
     local ok, gc = pcall(getgc)
     if ok and type(gc) == "table" then
@@ -83,8 +67,7 @@ do
                         local ok3, upvals = pcall(debug.getupvalues, v)
                         if ok3 and _searchTable(upvals, "RemoteEvent") then
                             local ok4 = pcall(hookfunction, v, function() return task.wait(9e9) end)
-                            bypassInfo.clientHooked = ok4
-                            break
+                            bypassInfo.clientHooked = ok4; break
                         end
                     end
                 end
@@ -98,7 +81,7 @@ print(string.format("[BYPASS] namecall=%s, clientHook=%s, key=%s",
     tostring(bypassInfo.nameKey)))
 
 -- ============================================================
---  PARTE 2: TELEPORT HELPER
+--  TELEPORT HELPER
 -- ============================================================
 local function teleportTo(pos)
     local char = player.Character
@@ -110,7 +93,7 @@ local function teleportTo(pos)
 end
 
 -- ============================================================
---  PARTE 3: CoolUI (adattata)
+--  THEME (identico all'originale)
 -- ============================================================
 local THEME = {
     Accent      = Color3.fromRGB(124, 92, 255),
@@ -129,6 +112,9 @@ local THEME = {
     Corner      = 10,
 }
 
+-- ============================================================
+--  HELPERS (identici all'originale)
+-- ============================================================
 local function create(class, props, children)
     local inst = Instance.new(class)
     for k, v in props or {} do (inst :: any)[k] = v end
@@ -142,8 +128,8 @@ local function stroke(color, thickness, transparency)
         Transparency = transparency or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     })
 end
-local function gradient(a, b, rot)
-    return create("UIGradient", { Color = ColorSequence.new(a, b), Rotation = rot or 0 })
+local function gradient(a, b, rotation)
+    return create("UIGradient", { Color = ColorSequence.new(a, b), Rotation = rotation or 0 })
 end
 local function pad(all)
     return create("UIPadding", {
@@ -151,7 +137,9 @@ local function pad(all)
         PaddingTop = UDim.new(0, all), PaddingBottom = UDim.new(0, all),
     })
 end
-local function tween(o, t, g) TweenService:Create(o, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), g):Play() end
+local function tween(obj, time, goal)
+    TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+end
 local function iconButton(symbol)
     local b = create("TextButton", {
         Size = UDim2.fromOffset(28, 28),
@@ -164,6 +152,9 @@ local function iconButton(symbol)
     return b
 end
 
+-- ============================================================
+--  LIBRARY (identica all'originale)
+-- ============================================================
 local Tab = {}
 Tab.__index = Tab
 local UILib = {}
@@ -209,7 +200,10 @@ function UILib:AddTab(name)
         create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }),
         pad(14),
     })
-    local tab = setmetatable({ name = name, button = button, indicator = indicator, label = label, content = content, _order = 0 }, Tab)
+    local tab = setmetatable({
+        name = name, button = button, indicator = indicator,
+        label = label, content = content, _order = 0,
+    }, Tab)
     button.MouseButton1Click:Connect(function() self:_select(tab) end)
     button.MouseEnter:Connect(function()
         if self.activeTab ~= tab then tween(button, 0.15, { BackgroundTransparency = 0.15 }) end
@@ -322,17 +316,17 @@ function UILib.new(titleText)
         end
     end)
 
-    -- Quadratino mini draggabile
+    -- ============================================================
+    --  MINI QUADRATINO (stesso stile: viola + gradiente)
+    -- ============================================================
     local mini = create("Frame", {
         Name = "Mini", AnchorPoint = Vector2.new(0.5, 0.5),
-        Size = UDim2.fromOffset(56, 56),
-        Position = window.Position,
-        BackgroundColor3 = THEME.Accent,
-        BorderSizePixel = 0, Visible = false, Active = true,
-        Parent = gui,
-    }, { corner(14) })
-    create("UIStroke", { Color = THEME.AccentB, Thickness = 1.5, Transparency = 0.2, Parent = mini },
-        { gradient(THEME.Accent, THEME.AccentB, 45) })
+        Size = UDim2.fromOffset(56, 56), Position = window.Position,
+        BackgroundColor3 = THEME.Accent, BorderSizePixel = 0,
+        Visible = false, Active = true, Parent = gui,
+    }, { corner(14), gradient(THEME.Accent, THEME.AccentB, 45) })
+    create("UIStroke", { Color = THEME.Accent, Thickness = 1.5, Transparency = 0.3, Parent = mini },
+        { gradient(THEME.Accent, THEME.AccentB, 135) })
     create("TextLabel", {
         Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
         Text = "YBA", Font = THEME.FontBold, TextSize = 14,
@@ -363,19 +357,20 @@ function UILib.new(titleText)
         end
     end)
 
-    local function toggleMini()
-        if window.Visible then
-            mini.Position = window.Position
-            window.Visible = false
-            mini.Visible = true
-        else
-            mini.Visible = false
-            window.Visible = true
-        end
+    local function collapseToMini()
+        mini.Position = window.Position
+        window.Visible = false
+        mini.Visible = true
     end
 
-    minBtn.MouseButton1Click:Connect(toggleMini)
+    local function expandFromMini()
+        mini.Visible = false
+        window.Visible = true
+    end
+
+    minBtn.MouseButton1Click:Connect(collapseToMini)
     closeBtn.MouseButton1Click:Connect(function() gui.Enabled = false end)
+
     UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if input.KeyCode == Enum.KeyCode.RightControl then
@@ -383,8 +378,10 @@ function UILib.new(titleText)
                 gui.Enabled = true
                 window.Visible = true
                 mini.Visible = false
+            elseif window.Visible then
+                collapseToMini()
             else
-                toggleMini()
+                expandFromMini()
             end
         end
     end)
@@ -393,7 +390,7 @@ function UILib.new(titleText)
 end
 
 -- ============================================================
---  CONTROLS
+--  CONTROLS (identici all'originale)
 -- ============================================================
 function Tab:_next() self._order += 1; return self._order end
 
@@ -437,6 +434,42 @@ function Tab:AddButton(text, callback)
     return btn
 end
 
+function Tab:AddToggle(text, default, callback)
+    local state = default == true
+    local row = create("TextButton", {
+        Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = THEME.Panel,
+        AutoButtonColor = false, BorderSizePixel = 0, Text = "",
+        LayoutOrder = self:_next(), Parent = self.content,
+    }, { corner(8), stroke(THEME.Stroke, 1, 0.3), pad(10) })
+    create("TextLabel", {
+        Size = UDim2.new(1, -56, 1, 0), BackgroundTransparency = 1,
+        Text = text, Font = THEME.FontMedium, TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = THEME.Text,
+        Parent = row,
+    })
+    local track = create("Frame", {
+        AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0),
+        Size = UDim2.fromOffset(40, 20), BackgroundColor3 = THEME.Track,
+        BorderSizePixel = 0, Parent = row,
+    }, { create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+    local knob = create("Frame", {
+        AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 2, 0.5, 0),
+        Size = UDim2.fromOffset(16, 16), BackgroundColor3 = THEME.Text,
+        BorderSizePixel = 0, Parent = track,
+    }, { create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+    local function render()
+        tween(track, 0.15, { BackgroundColor3 = state and THEME.Accent or THEME.Track })
+        tween(knob, 0.15, { Position = state and UDim2.new(0, 22, 0.5, 0) or UDim2.new(0, 2, 0.5, 0) })
+    end
+    render()
+    row.MouseButton1Click:Connect(function()
+        state = not state
+        render()
+        if callback then task.spawn(callback, state) end
+    end)
+    return row
+end
+
 -- ============================================================
 --  BUILD MENU
 -- ============================================================
@@ -445,8 +478,8 @@ local Menu = UILib.new("YBA Multi-Tool")
 -- Info (default)
 local info = Menu:AddTab("Info")
 info:AddSection("Benvenuto")
-info:AddLabel("YBA Multi-Tool — versione bypass.\n\n" ..
-    "RightCtrl: collassa a quadratino (draggabile).\n" ..
+info:AddLabel("YBA Multi-Tool — bypass attivo.\n\n" ..
+    "RightCtrl: collassa a quadratino draggabile.\n" ..
     "Clicca il quadratino per riaprire.\n" ..
     "Trascina la barra del titolo per spostare la finestra.")
 
@@ -459,13 +492,12 @@ info:AddLabel(string.format(
 ))
 
 info:AddSection("Sezioni")
-info:AddLabel("• Farm — Stand / Item / Requiem\n" ..
-    "• Teleport — NPC principali")
+info:AddLabel("• Farm — Stand / Item / Requiem\n• Teleport — NPC principali")
 
 -- Farm
 local farm = Menu:AddTab("Farm")
 farm:AddSection("Farming")
-farm:AddLabel("Tutte le funzioni sono in sviluppo. Per ora i pulsanti sono segnaposto.")
+farm:AddLabel("Funzioni in sviluppo. Pulsanti segnaposto per ora.")
 farm:AddButton("Stand Farm", function()
     print("[Farm] Stand Farm — da implementare")
 end)
